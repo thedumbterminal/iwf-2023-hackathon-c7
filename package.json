@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7/issues"
   },
-  "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme"
+  "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme",
+  "dependencies": {
+    "jimp": "^0.22.4",
+    "opencv-bindings": "^4.5.5"
+  }
 }

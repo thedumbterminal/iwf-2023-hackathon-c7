@@ -1,0 +1,19 @@
+{
+  "name": "iwf-2023-hackathon-c7",
+  "version": "1.0.0",
+  "description": "IWF Hackathon 2023",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thedumbterminal/iwf-2023-hackathon-c7.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7/issues"
+  },
+  "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme"
+}

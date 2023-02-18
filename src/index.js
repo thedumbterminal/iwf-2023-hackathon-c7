@@ -1,13 +1,23 @@
+const sharp = require('sharp')
+const PNG = require('pngjs').PNG
+const pixelmatch = require('pixelmatch')
+const fs = require('node:fs/promises')
+const os = require('os')
+
 const broken = 'samples/sample1_broken.jpg'
 const notBroken = 'samples/sample1.jpg'
 const thor = 'samples/thor.png'
 
-var sharp = require('sharp')
-const fs = require('fs');
-const PNG = require('pngjs').PNG
-const pixelmatch = require('pixelmatch')
+const comparer = {}
 
-const isCorrupt = async (jpeg) => {
+comparer.getTempDirName = async () => {
+  if(!comparer.__tempDirName){
+    comparer.__tempDirName = await fs.mkdtemp(os.tmpdir())
+  }
+  return comparer.__tempDirName
+}
+
+comparer.isCorrupt = async (jpeg) => {
     const image = sharp(jpeg)
     try {
         await image.stats()
@@ -17,7 +27,7 @@ const isCorrupt = async (jpeg) => {
     }
 }
 
-const getSmallestImageSize = async (img1, img2) => {
+comparer.getSmallestImageSize = async (img1, img2) => {
     const img1Formatted = sharp(img1, {failOnError: false})
     const img2Formatted = sharp(img2, {failOnError: false})
 
@@ -43,7 +53,7 @@ const getSmallestImageSize = async (img1, img2) => {
 
 }
 
-const getImageSizeForCorrupt = async (jpeg, fraction) => {
+comparer.getImageSizeForCorrupt = async (jpeg, fraction) => {
     const imageToBeSized = sharp(jpeg, {failOnError: true})
     const imageMetaData = await imageToBeSized.metadata()
 
@@ -61,15 +71,17 @@ const getImageSizeForCorrupt = async (jpeg, fraction) => {
     return newImageSize
 }
 
-const cropImage = async (img1, img2, imageSize) => {
+comparer.cropImage = async (img1, img2, imageSize) => {
     const imageToCrop1 = await sharp(img1, { failOnError: false })
     const imageToCrop2 = await sharp(img2, { failOnError: false })
 
     const cropped1 = await imageToCrop1.extract({left: 0, width: imageSize.width, height: imageSize.height, top: 0})
     const cropped2 = await imageToCrop2.extract({left: 0, width: imageSize.width, height: imageSize.height, top: 0})
     
-    const fileName1 = __dirname + `/processed_images/img1_${imageSize.width}_${imageSize.height}.png`
-    const fileName2 = __dirname + `/processed_images/img2_${imageSize.width}_${imageSize.height}.png`
+    const tempDir = await comparer.getTempDirName()
+    
+    const fileName1 = tempDir + `/img1_${imageSize.width}_${imageSize.height}.png`
+    const fileName2 = tempDir + `/img2_${imageSize.width}_${imageSize.height}.png`
 
     await cropped1.toFile(fileName1)
     await cropped2.toFile(fileName2)
@@ -79,12 +91,12 @@ const cropImage = async (img1, img2, imageSize) => {
     ]
 }
 
-const compare = async (files) => {
+comparer.compare = async (files) => {
     const croppedImg1 = files[0]
     const croppedImg2 = files[1]
 
-    const img1Object = PNG.sync.read(fs.readFileSync(croppedImg1))
-    const img2Object = PNG.sync.read(fs.readFileSync(croppedImg2))
+    const img1Object = PNG.sync.read(await fs.readFile(croppedImg1))
+    const img2Object = PNG.sync.read(await fs.readFile(croppedImg2))
     
     const {width, height} = img1Object
 
@@ -100,10 +112,10 @@ const compare = async (files) => {
     return result
 }
 
-const compareImages = async (img1, img2) => {
+comparer.compareImages = async (img1, img2) => {
 
     // check if corrupt
-    if (await isCorrupt(img1) || await isCorrupt(img2)){
+    if (await comparer.isCorrupt(img1) || await comparer.isCorrupt(img2)){
         const result = {}
 
         const dimensions = [
@@ -114,10 +126,10 @@ const compareImages = async (img1, img2) => {
         ]
 
         const promises = dimensions.map(async(dimension) => {
-            const sizes = await getImageSizeForCorrupt(img1, dimension.fraction)
+            const sizes = await comparer.getImageSizeForCorrupt(img1, dimension.fraction)
 
-            const files = await cropImage(img1, img2, sizes)
-             result[dimension.name] = await compare(files)
+            const files = await comparer.cropImage(img1, img2, sizes)
+             result[dimension.name] = await comparer.compare(files)
         })
 
         await Promise.all(promises)
@@ -127,9 +139,9 @@ const compareImages = async (img1, img2) => {
     }
 
     // when neither file is corrupt
-    const imageDimensions = await getSmallestImageSize(img1, img2)
-    const files = await cropImage(img1, img2, imageDimensions)
-    const result = await compare(files)
+    const imageDimensions = await comparer.getSmallestImageSize(img1, img2)
+    const files = await comparer.cropImage(img1, img2, imageDimensions)
+    const result = await comparer.compare(files)
     console.log(result)
     return result
 }
@@ -139,6 +151,6 @@ const compareImages = async (img1, img2) => {
 //     console.log(e)
 // })
 
-compareImages(notBroken, broken).catch((e) => {
+comparer.compareImages(notBroken, broken).catch((e) => {
     console.log(e)
 })

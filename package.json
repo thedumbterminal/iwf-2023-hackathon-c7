@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7/issues"
   },
-  "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme"
+  "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme",
+  "dependencies": {
+    "is-corrupted-jpeg": "^1.0.2",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^6.0.0",
+    "sharp": "^0.31.3"
+  }
 }

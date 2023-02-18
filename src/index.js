@@ -4,9 +4,9 @@ const pixelmatch = require('pixelmatch')
 const fs = require('node:fs/promises')
 const os = require('os')
 
-const broken = 'samples/sample1_broken.jpg'
-const notBroken = 'samples/sample1.jpg'
-const thor = 'samples/thor.png'
+const broken = 'samples/broken/sample1_broken.jpg'
+const notBroken = 'samples/complete/sample1.jpg'
+const thor = 'samples/complete/thor.png'
 
 const comparer = {}
 

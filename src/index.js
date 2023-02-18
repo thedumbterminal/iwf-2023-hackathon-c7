@@ -71,7 +71,7 @@ comparer.getImageSizeForCorrupt = async (jpeg, fraction) => {
         height: reducedImageHeight
     }
 
-    console.log('** New image size ** >> ', newImageSize)
+    //console.log('** New image size ** >> ', newImageSize)
     return newImageSize
 }
 
@@ -160,7 +160,7 @@ const main = async () => {
   const broken = await comparer.getBrokenDir()
   for (b in broken) {
     const brokenFile = 'samples/broken/' + broken[b]
-    console.log('processing broken image: ', brokenFile, 'to:', notBroken)
+    console.log('Comparing broken image: ', brokenFile, 'to:', notBroken)
     await comparer.compareImages(notBroken, brokenFile)
   }
 }

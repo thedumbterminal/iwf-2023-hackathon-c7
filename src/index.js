@@ -10,6 +10,10 @@ const thor = 'samples/complete/thor.png'
 
 const comparer = {}
 
+comparer.getBrokenDir = async () => {
+  return await fs.readdir('samples/broken')
+}
+
 comparer.getTempDirName = async () => {
   if(!comparer.__tempDirName){
     comparer.__tempDirName = await fs.mkdtemp(os.tmpdir())
@@ -151,6 +155,16 @@ comparer.compareImages = async (img1, img2) => {
 //     console.log(e)
 // })
 
-comparer.compareImages(notBroken, broken).catch((e) => {
+
+const main = async () => {
+  const broken = await comparer.getBrokenDir()
+  for (b in broken) {
+    const brokenFile = 'samples/broken/' + broken[b]
+    console.log('processing broken image: ', brokenFile, 'to:', notBroken)
+    await comparer.compareImages(notBroken, brokenFile)
+  }
+}
+
+main().catch((e) => {
     console.log(e)
 })

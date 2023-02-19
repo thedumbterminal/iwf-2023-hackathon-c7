@@ -4,7 +4,7 @@
 
 Compares broken images in the `samples/broken` directory with a complete image in the `samples/complete` directory.
 
-Uses node.js CLI 
+Uses node.js CLI and [pixelmatch](https://www.npmjs.com/package/pixelmatch) to compare images using colour differences.
 
 ## Install
 
@@ -18,7 +18,7 @@ npm start
 
 * Compare broken images to more than one complete image.
 * Save results to a DB.
-* Create a UI to upload broken images and show results.
+* Create a UI to upload broken images and show top matching complete images.
 
 ## Notes
 

@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/thedumbterminal/iwf-2023-hackathon-c7#readme",
   "dependencies": {
-    "sharp": "^0.31.3",
     "pixelmatch": "^5.3.0",
-    "pngjs": "^6.0.0"
+    "pngjs": "^6.0.0",
+    "sharp": "^0.31.3"
   }
 }

@@ -4,15 +4,11 @@ const pixelmatch = require('pixelmatch')
 const fs = require('node:fs/promises')
 const os = require('os')
 
-const broken = 'samples/broken/sample1_broken.jpg'
-const notBroken = 'samples/complete/sample1.jpg'
-const thor = 'samples/complete/thor.png'
-
 const comparer = {}
 
-comparer.getBrokenDir = async () => {
-  return await fs.readdir('samples/broken')
-}
+comparer.getDir = async (path) => {
+    return await fs.readdir(`samples/${path}`)
+  }
 
 comparer.getTempDirName = async () => {
   if(!comparer.__tempDirName){
@@ -52,26 +48,18 @@ comparer.getSmallestImageSize = async (img1, img2) => {
         height: smallestImageHeight
     }
 
-    console.log('** Smallest picture size ** >> ', newImageSize)
     return newImageSize
 
 }
 
-comparer.getImageSizeForCorrupt = async (jpeg, fraction) => {
-    const imageToBeSized = sharp(jpeg, {failOnError: true})
-    const imageMetaData = await imageToBeSized.metadata()
-
-    const imageWidth = imageMetaData.width
-    const imageHeight = imageMetaData.height
-
-    const reducedImageHeight = imageHeight / fraction
+comparer.getImageSizeForCorrupt = async (imageDimensions, fraction) => {
+    const reducedImageHeight = imageDimensions.height / fraction
 
     const newImageSize = {
-        width: imageWidth,
+        width: imageDimensions.width,
         height: reducedImageHeight
     }
 
-    //console.log('** New image size ** >> ', newImageSize)
     return newImageSize
 }
 
@@ -79,8 +67,9 @@ comparer.cropImage = async (img1, img2, imageSize) => {
     const imageToCrop1 = await sharp(img1, { failOnError: false })
     const imageToCrop2 = await sharp(img2, { failOnError: false })
 
-    const cropped1 = await imageToCrop1.extract({left: 0, width: imageSize.width, height: imageSize.height, top: 0})
-    const cropped2 = await imageToCrop2.extract({left: 0, width: imageSize.width, height: imageSize.height, top: 0})
+    // Had to add Math.trunc() because the extract function does not like decimals
+    const cropped1 = await imageToCrop1.extract({left: 0, width: Math.trunc(imageSize.width), height: Math.trunc(imageSize.height), top: 0})
+    const cropped2 = await imageToCrop2.extract({left: 0, width: Math.trunc(imageSize.width), height: Math.trunc(imageSize.height), top: 0})
     
     const tempDir = await comparer.getTempDirName()
     
@@ -111,7 +100,7 @@ comparer.compare = async (files) => {
     const percent = 100 - (((total - pixelsMatching) / total) * 100)
     const result = {
         numDiffPixels,
-        percent
+        matchingPercent: percent
         }
     return result
 }
@@ -130,18 +119,19 @@ comparer.compareImages = async (img1, img2) => {
         ]
 
         const promises = dimensions.map(async(dimension) => {
-            const sizes = await comparer.getImageSizeForCorrupt(img1, dimension.fraction)
-
+            const imageDimensions = await comparer.getSmallestImageSize(img1, img2)
+            const sizes = await comparer.getImageSizeForCorrupt(imageDimensions, dimension.fraction)
             const files = await comparer.cropImage(img1, img2, sizes)
-             result[dimension.name] = await comparer.compare(files)
+            result[dimension.name] = await comparer.compare(files)
         })
 
         await Promise.all(promises)
-
         console.log(result)
         return result
     }
 
+    // Maybe this should be removed if we are only going to be comparing complete vs corrupt images? 
+    // However we could use the isCorrupt function to work out if they are corrupt when uploaded?
     // when neither file is corrupt
     const imageDimensions = await comparer.getSmallestImageSize(img1, img2)
     const files = await comparer.cropImage(img1, img2, imageDimensions)
@@ -150,18 +140,17 @@ comparer.compareImages = async (img1, img2) => {
     return result
 }
 
-// *******************************************************
-// compareImages(notBroken, thor).catch((e) => {
-//     console.log(e)
-// })
-
-
 const main = async () => {
-  const broken = await comparer.getBrokenDir()
+    const broken = await comparer.getDir('broken')
+    const fixed = await comparer.getDir('complete')
+
   for (b in broken) {
-    const brokenFile = 'samples/broken/' + broken[b]
-    console.log('Comparing broken image: ', brokenFile, 'to:', notBroken)
-    await comparer.compareImages(notBroken, brokenFile)
+    for (f in fixed){
+        const brokenFile = 'samples/broken/' + broken[b]
+        const completeFile = 'samples/complete/' + fixed[f]
+        console.log('Comparing broken image: ', brokenFile, 'to: ', completeFile)
+        await comparer.compareImages(completeFile, brokenFile)
+    }
   }
 }
 

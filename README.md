@@ -16,9 +16,11 @@ npm start
 
 ## Future work
 
-* Compare broken images to more than one complete image.
 * Save results to a DB.
-* Create a UI to upload broken images and show top matching complete images.
+* Create a UI to upload broken images and show top matching complete images. (maybe use bulma for UI framework so it's kept simple?)
+* Upload will work out if the files are corrupt and put them into the correct image directory.
+* Accept a binary image file (this is what IWF use), maybe use node ssdeep package? Compares the hash of two images. 
+* Does this work if the images are the same but the pictures are different sizes?
 
 ## Notes
 
